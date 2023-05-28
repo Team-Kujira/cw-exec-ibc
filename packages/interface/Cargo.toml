@@ -1,0 +1,9 @@
+[package]
+name = "interface"
+version = "0.8.0"
+edition = "2021"
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+thiserror = { workspace = true }

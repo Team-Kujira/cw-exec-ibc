@@ -1,0 +1,18 @@
+[package]
+name = "kujira-std"
+version = "0.8.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+hex = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+cw20 = { workspace = true }
+cosmos-sdk-proto = { version = "0.17.0", default-features = false }
+
+[dev-dependencies]
+serde_json = { workspace = true }

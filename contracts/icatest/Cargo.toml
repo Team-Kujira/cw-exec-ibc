@@ -1,0 +1,40 @@
+[package]
+name = "icatest-controller"
+version = "0.1.0"
+authors = ["Amit Prasad <amit@prasad.me>"]
+edition = "2021"
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+
+[dependencies]
+kujira = { workspace = true, version = "0.8" }
+cosmwasm-std = { workspace = true, version = "1.2" }
+cosmwasm-schema = { workspace = true, version = "1.2" }
+cw-storage-plus = { workspace = true, version = "1.0" }
+cw-utils = { workspace = true, version = "1.0" }
+cw2 = { workspace = true, version = "1.0" }
+schemars = { workspace = true, version = "0.8" }
+serde = { workspace = true, default-features = false, features = ["derive"], version="1" }
+cosmos-sdk-proto = { version = "0.17.0", default-features = false }
+thiserror = "1"
+interface = {workspace = true}
+
+[dev-dependencies]
+cosmwasm-schema = { workspace = true, version = "1.2" }
+cw-multi-test = { workspace = true, version = "0.16" }
+anyhow = "1"
+kujira-rs-testing = { workspace = true, version = "1.0" }

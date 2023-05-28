@@ -1,0 +1,17 @@
+{
+  "networks": {
+    "devnet": {
+      "icatest": {
+        "code_ids": [
+          1
+        ],
+        "instances": [
+          {
+            "code_id": 1,
+            "address": "kujira14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sl4e867"
+          }
+        ]
+      }
+    }
+  }
+}
