@@ -6,7 +6,7 @@ use cosmos_sdk_proto::{
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
-use kujira::{InterTxMsg, KujiraMsg, KujiraQuery, ProtobufAny};
+use kujira::{InterTxMsg, KujiraMsg, KujiraQuerier, KujiraQuery, ProtobufAny};
 
 use crate::error::ContractError;
 use interface::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
@@ -32,7 +32,7 @@ pub fn instantiate(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
-    _deps: DepsMut<KujiraQuery>,
+    deps: DepsMut<KujiraQuery>,
     env: Env,
     _info: MessageInfo,
     msg: ExecuteMsg,
@@ -53,11 +53,15 @@ pub fn execute(
             conn_id,
             acc_id,
             validator,
-            delegator,
             amount,
         } => {
+            let address = KujiraQuerier::new(&deps.querier).query_interchain_address(
+                env.contract.address,
+                conn_id.clone(),
+                acc_id.clone(),
+            )?;
             let msg = MsgDelegate {
-                delegator_address: delegator,
+                delegator_address: address.clone(),
                 validator_address: validator,
                 amount: Some(cosmos_sdk_proto::cosmos::base::v1beta1::Coin {
                     denom: amount.denom,
@@ -65,22 +69,16 @@ pub fn execute(
                 }),
             };
             let bytes = msg.to_bytes().unwrap();
-            let any = ProtobufAny::new(MsgDelegate::TYPE_URL.to_string(), bytes.into());
-            // let type_url = MsgDelegate::TYPE_URL;
-            // let msg = cosmwasm_std::to_vec(&msg).unwrap();
-            // let msg = ProtobufAny {
-            //     type_url: type_url.to_string(),
-            //     value: msg,
-            // };
-            Ok(
-                Response::default().add_message(KujiraMsg::Intertx(InterTxMsg::Submit {
+            let any = ProtobufAny::new(MsgDelegate::TYPE_URL, bytes);
+            Ok(Response::default()
+                .add_message(KujiraMsg::Intertx(InterTxMsg::Submit {
                     connection_id: conn_id,
                     account_id: acc_id,
                     msgs: vec![any],
                     memo: "Hello from Kujira".to_string(),
-                    timeout: 100000000000u64,
-                })),
-            )
+                    timeout: 100000000000u64, // 100 seconds
+                }))
+                .add_attribute("Interchain Account Address", address))
         }
     }
 }

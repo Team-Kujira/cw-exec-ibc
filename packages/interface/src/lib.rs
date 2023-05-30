@@ -18,7 +18,6 @@ pub enum ExecuteMsg {
         conn_id: String,
         acc_id: String,
         validator: String,
-        delegator: String,
         amount: Coin,
     }
 }

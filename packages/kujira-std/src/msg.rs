@@ -76,8 +76,11 @@ impl ProtobufAny {
     /// Helper to create new ProtobufAny type:
     /// * **type_url** describes the type of the serialized message
     /// * **value** must be a valid serialized protocol buffer of the above specified type
-    pub fn new(type_url: String, value: Binary) -> Self {
-        ProtobufAny { type_url, value }
+    pub fn new(type_url: impl Into<String>, value: impl Into<Binary>) -> Self {
+        ProtobufAny {
+            type_url: type_url.into(),
+            value: value.into(),
+        }
     }
 }
 
