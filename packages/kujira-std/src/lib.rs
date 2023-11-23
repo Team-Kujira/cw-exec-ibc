@@ -8,6 +8,7 @@ mod price;
 mod querier;
 mod query;
 mod schedule;
+mod sudo;
 mod utils;
 
 pub use {
@@ -21,5 +22,6 @@ pub use {
     querier::KujiraQuerier,
     query::{BankQuery, ExchangeRateResponse, KujiraQuery, OracleQuery, SupplyResponse},
     schedule::{Release, Schedule},
+    sudo::{IcaCallbackData, SudoMsg},
     utils::{amount, fee_address},
 };

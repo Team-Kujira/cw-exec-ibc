@@ -45,7 +45,7 @@ impl<'a> KujiraQuerier<'a> {
         owner: Addr,
         connection_id: String,
         account_id: String,
-    ) -> StdResult<String> {
+    ) -> StdResult<AccountAddressResponse> {
         let query = KujiraQuery::Intertx(IntertxQuery::AccountAddress {
             owner,
             connection_id,
@@ -54,7 +54,7 @@ impl<'a> KujiraQuerier<'a> {
         let request: QueryRequest<KujiraQuery> = KujiraQuery::into(query);
         let result: AccountAddressResponse = self.querier.query(&request)?;
 
-        Ok(result.address)
+        Ok(result)
     }
 
     pub fn inner(&self) -> &QuerierWrapper<'a, KujiraQuery> {

@@ -13,14 +13,19 @@ pub enum ExecuteMsg {
         conn_id: String,
         acc_id: String,
         version: String,
+        tx_id: u64,
     },
     SendDelegateTx {
         conn_id: String,
         acc_id: String,
         validator: String,
         amount: Coin,
-    }
+        tx_id: u64,
+    },
 }
 
 #[cw_serde]
-pub enum QueryMsg {}
+pub enum QueryMsg {
+    Account { conn_id: String, acc_id: String },
+    IcaCallback { tx_id: u64 },
+}

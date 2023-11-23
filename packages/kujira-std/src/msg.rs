@@ -90,6 +90,7 @@ pub enum InterTxMsg {
         connection_id: String,
         account_id: String,
         version: String,
+        tx_id: u64,
     },
     Submit {
         connection_id: String,
@@ -97,5 +98,6 @@ pub enum InterTxMsg {
         msgs: Vec<ProtobufAny>,
         memo: String,
         timeout: u64,
+        tx_id: u64,
     },
 }
