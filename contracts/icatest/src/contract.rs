@@ -125,7 +125,7 @@ fn query_ica_callback(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
     match msg {
-        SudoMsg::Callback(data) => sudo_callback(deps, env, data),
+        SudoMsg::IcaCallback(data) => sudo_callback(deps, env, data),
     }
 }
 
