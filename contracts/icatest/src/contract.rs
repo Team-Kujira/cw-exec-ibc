@@ -9,10 +9,14 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use kujira::{
-    IcaCallbackData, InterTxMsg, KujiraMsg, KujiraQuerier, KujiraQuery, ProtobufAny, SudoMsg,
+    IcaRegisterCallbackData, IcaTxCallbackData, InterTxMsg, KujiraMsg, KujiraQuerier, KujiraQuery,
+    ProtobufAny, SudoMsg,
 };
 
-use crate::{error::ContractError, state::INTERCHAIN_CALLBACKS};
+use crate::{
+    error::ContractError,
+    state::{ICA_REGISTER_CALLBACKS, ICA_TX_CALLBACKS},
+};
 use interface::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 const CONTRACT_NAME: &str = "icatest";
@@ -46,13 +50,13 @@ pub fn execute(
             conn_id,
             acc_id,
             version,
-            tx_id,
+            callback,
         } => Ok(
             Response::default().add_message(KujiraMsg::Intertx(InterTxMsg::Register {
                 connection_id: conn_id,
                 account_id: acc_id,
-                version,
-                tx_id,
+                version: version,
+                callback: Binary::from(callback.as_bytes()),
             })),
         ),
         ExecuteMsg::SendDelegateTx {
@@ -60,7 +64,7 @@ pub fn execute(
             acc_id,
             validator,
             amount,
-            tx_id,
+            callback,
         } => {
             let address = KujiraQuerier::new(&deps.querier).query_interchain_address(
                 env.contract.address,
@@ -84,7 +88,7 @@ pub fn execute(
                     msgs: vec![any],
                     memo: "Hello from Kujira".to_string(),
                     timeout: 100000000000u64, // 100 seconds
-                    tx_id: tx_id,
+                    callback: Binary::from(callback.as_bytes()),
                 }))
                 .add_attribute("Interchain Account Address", address.address))
         }
@@ -95,7 +99,10 @@ pub fn execute(
 pub fn query(deps: Deps<KujiraQuery>, env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
         QueryMsg::Account { conn_id, acc_id } => query_account(deps, env, conn_id, acc_id),
-        QueryMsg::IcaCallback { tx_id } => query_ica_callback(deps, env, tx_id),
+        QueryMsg::IcaRegisterCallback { callback } => {
+            query_ica_register_callback(deps, env, callback)
+        }
+        QueryMsg::IcaTxCallback { callback } => query_ica_tx_callback(deps, env, callback),
     }
 }
 
@@ -113,24 +120,44 @@ fn query_account(
     }
 }
 
-fn query_ica_callback(
+fn query_ica_register_callback(
     deps: Deps<KujiraQuery>,
     _env: Env,
-    tx_id: u64,
+    callback: String,
 ) -> Result<Binary, ContractError> {
-    let data = INTERCHAIN_CALLBACKS.load(deps.storage, tx_id)?;
+    let data = ICA_REGISTER_CALLBACKS.load(deps.storage, callback)?;
+    return Ok(to_binary(&data)?);
+}
+
+fn query_ica_tx_callback(
+    deps: Deps<KujiraQuery>,
+    _env: Env,
+    callback: String,
+) -> Result<Binary, ContractError> {
+    let data = ICA_TX_CALLBACKS.load(deps.storage, callback)?;
     return Ok(to_binary(&data)?);
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
     match msg {
-        SudoMsg::IcaCallback(data) => sudo_callback(deps, env, data),
+        SudoMsg::IcaRegisterCallback(data) => sudo_ica_register_callback(deps, env, data),
+        SudoMsg::IcaTxCallback(data) => sudo_ica_tx_callback(deps, env, data),
     }
 }
 
-fn sudo_callback(deps: DepsMut, _env: Env, data: IcaCallbackData) -> StdResult<Response> {
+fn sudo_ica_register_callback(
+    deps: DepsMut,
+    _env: Env,
+    data: IcaRegisterCallbackData,
+) -> StdResult<Response> {
     // Update the storage record associated with the ica callback.
-    INTERCHAIN_CALLBACKS.save(deps.storage, data.tx_id, &data)?;
+    ICA_REGISTER_CALLBACKS.save(deps.storage, data.callback.to_string(), &data)?;
+    return Ok(Response::default());
+}
+
+fn sudo_ica_tx_callback(deps: DepsMut, _env: Env, data: IcaTxCallbackData) -> StdResult<Response> {
+    // Update the storage record associated with the ica callback.
+    ICA_TX_CALLBACKS.save(deps.storage, data.callback.to_string(), &data)?;
     return Ok(Response::default());
 }

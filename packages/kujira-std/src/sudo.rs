@@ -3,14 +3,24 @@ use cosmwasm_std::Binary;
 
 #[cw_serde]
 pub enum SudoMsg {
-    IcaCallback(IcaCallbackData),
+    IcaRegisterCallback(IcaRegisterCallbackData),
+    IcaTxCallback(IcaTxCallbackData),
 }
 
 #[cw_serde]
-pub struct IcaCallbackData {
+pub struct IcaRegisterCallbackData {
     pub connection_id: String,
     pub account_id: String,
-    pub tx_id: u64,
+    pub callback: Binary,
+    pub result: IcaResult,
+}
+
+#[cw_serde]
+pub struct IcaTxCallbackData {
+    pub connection_id: String,
+    pub account_id: String,
+    pub sequence: u64,
+    pub callback: Binary,
     pub result: IcaResult,
 }
 
