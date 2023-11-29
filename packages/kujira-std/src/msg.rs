@@ -9,7 +9,7 @@ use crate::denom::Denom;
 pub enum KujiraMsg {
     Auth(AuthMsg),
     Denom(DenomMsg),
-    Intertx(InterTxMsg),
+    CwIca(CwICAMsg),
 }
 
 impl CustomMsg for KujiraMsg {}
@@ -85,7 +85,7 @@ impl ProtobufAny {
 }
 
 #[cw_serde]
-pub enum InterTxMsg {
+pub enum CwICAMsg {
     Register {
         connection_id: String,
         account_id: String,

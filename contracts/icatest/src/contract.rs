@@ -9,9 +9,10 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 use kujira::{
-    IcaRegisterCallbackData, IcaTxCallbackData, InterTxMsg, KujiraMsg, KujiraQuerier, KujiraQuery,
+    CwICAMsg, IcaRegisterCallbackData, IcaTxCallbackData, KujiraMsg, KujiraQuerier, KujiraQuery,
     ProtobufAny, SudoMsg,
 };
+use std::str;
 
 use crate::{
     error::ContractError,
@@ -52,7 +53,7 @@ pub fn execute(
             version,
             callback,
         } => Ok(
-            Response::default().add_message(KujiraMsg::Intertx(InterTxMsg::Register {
+            Response::default().add_message(KujiraMsg::CwIca(CwICAMsg::Register {
                 connection_id: conn_id,
                 account_id: acc_id,
                 version: version,
@@ -82,7 +83,7 @@ pub fn execute(
             let bytes = msg.to_bytes().unwrap();
             let any = ProtobufAny::new(MsgDelegate::TYPE_URL, bytes);
             Ok(Response::default()
-                .add_message(KujiraMsg::Intertx(InterTxMsg::Submit {
+                .add_message(KujiraMsg::CwIca(CwICAMsg::Submit {
                     connection_id: conn_id,
                     account_id: acc_id,
                     msgs: vec![any],
@@ -102,7 +103,9 @@ pub fn query(deps: Deps<KujiraQuery>, env: Env, msg: QueryMsg) -> Result<Binary,
         QueryMsg::IcaRegisterCallback { callback } => {
             query_ica_register_callback(deps, env, callback)
         }
+        QueryMsg::IcaRegisterCallbackKeys {} => query_ica_register_callback_keys(deps, env),
         QueryMsg::IcaTxCallback { callback } => query_ica_tx_callback(deps, env, callback),
+        QueryMsg::IcaTxCallbackKeys {} => query_ica_tx_callback_keys(deps, env),
     }
 }
 
@@ -118,6 +121,35 @@ fn query_account(
         Ok(account) => Ok(to_binary(&account)?),
         Err(e) => Err(e.into()),
     }
+}
+
+fn query_ica_register_callback_keys(
+    deps: Deps<KujiraQuery>,
+    _env: Env,
+) -> Result<Binary, ContractError> {
+    let keys = ICA_REGISTER_CALLBACKS
+        .range(deps.storage, None, None, Order::Ascending)
+        .map(|item| {
+            if let Ok((key, _)) = item {
+                return key;
+            }
+            return "".to_string();
+        })
+        .collect::<Vec<String>>();
+    return Ok(to_binary(&keys)?);
+}
+
+fn query_ica_tx_callback_keys(deps: Deps<KujiraQuery>, _env: Env) -> Result<Binary, ContractError> {
+    let keys = ICA_TX_CALLBACKS
+        .range(deps.storage, None, None, Order::Ascending)
+        .map(|item| {
+            if let Ok((key, _)) = item {
+                return key;
+            }
+            return "".to_string();
+        })
+        .collect::<Vec<String>>();
+    return Ok(to_binary(&keys)?);
 }
 
 fn query_ica_register_callback(
@@ -152,12 +184,20 @@ fn sudo_ica_register_callback(
     data: IcaRegisterCallbackData,
 ) -> StdResult<Response> {
     // Update the storage record associated with the ica callback.
-    ICA_REGISTER_CALLBACKS.save(deps.storage, data.callback.to_string(), &data)?;
+    ICA_REGISTER_CALLBACKS.save(
+        deps.storage,
+        str::from_utf8(data.callback.as_slice())?.to_string(),
+        &data,
+    )?;
     return Ok(Response::default());
 }
 
 fn sudo_ica_tx_callback(deps: DepsMut, _env: Env, data: IcaTxCallbackData) -> StdResult<Response> {
     // Update the storage record associated with the ica callback.
-    ICA_TX_CALLBACKS.save(deps.storage, data.callback.to_string(), &data)?;
+    ICA_TX_CALLBACKS.save(
+        deps.storage,
+        str::from_utf8(data.callback.as_slice())?.to_string(),
+        &data,
+    )?;
     return Ok(Response::default());
 }

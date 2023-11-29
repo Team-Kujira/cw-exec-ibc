@@ -116,22 +116,32 @@ Tx id is the identifier to check ica callback after the relay operation completi
 
 ```sh
 CONTRACT=kujira14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sl4e867
-kujirad tx wasm execute $CONTRACT '{"create_account":{"tx_id":1,"conn_id":"connection-0","acc_id":"1","version":""}}' --from validator --gas auto --gas-adjustment 1.3 -y --output json  --home $HOME/.kujirad --keyring-backend test --chain-id kujira
+kujirad tx wasm execute $CONTRACT '{"create_account":{"callback":"1","conn_id":"connection-0","acc_id":"1","version":""}}' --from validator --gas auto --gas-adjustment 1.3 -y --output json  --home $HOME/.kujirad --keyring-backend test --chain-id kujira
 ```
 
 To check the ica callback after waiting up to 30s for relay operation to finish.
 
 ```sh
-kujirad query wasm contract-state smart $CONTRACT '{"ica_callback":{"tx_id":1}}'
+kujirad query wasm contract-state smart $CONTRACT '{"ica_register_callback":{"callback":"1"}}'
 
 # output
 data:
   account_id: "1"
+  callback: MQ==
   connection_id: connection-0
   result:
     success:
-      data: eyJ2ZXJzaW9uIjoiaWNzMjctMSIsImNvbnRyb2xsZXJfY29ubmVjdGlvbl9pZCI6ImNvbm5lY3Rpb24tMCIsImhvc3RfY29ubmVjdGlvbl9pZCI6ImNvbm5lY3Rpb24tMCIsImFkZHJlc3MiOiJ0ZXJyYTE0dzA0Mmp1eXJrdGpqcXR4cHFlM3dydWMzcWp4eXZ3OHB1cnJkdDh1dGZyMjhwNGo1ZWRxMjB0ZDI2IiwiZW5jb2RpbmciOiJwcm90bzMiLCJ0eF90eXBlIjoic2RrX211bHRpX21zZyJ9
-  tx_id: 1
+      data: eyJ2ZXJzaW9uIjoiaWNzMjctMSIsImNvbnRyb2xsZXJfY29ubmVjdGlvbl9pZCI6ImNvbm5lY3Rpb24tMCIsImhvc3RfY29ubmVjdGlvbl9pZCI6ImNvbm5lY3Rpb24tMCIsImFkZHJlc3MiOiJ0ZXJyYTFuNGZsZ3d4ZHdybjVmbmZjOHYza253NXhneDk5cnVsejVhc2R2YTY0MGd5azA5M242cmtxemwyd2NwIiwiZW5jb2RpbmciOiJwcm90bzMiLCJ0eF90eXBlIjoic2RrX211bHRpX21zZyJ9
+```
+
+To get all the callback keys for ica registrations
+
+```sh
+kujirad query wasm contract-state smart $CONTRACT '{"ica_register_callback_keys":{}}'
+
+# Output
+data:
+- "1"
 ```
 
 #### ICA account query
@@ -183,23 +193,24 @@ $COUNTER_BINARY query interchain-accounts host params
 - Send Delegation Tx through ICA
 
 ```sh
-kujirad tx wasm execute $CONTRACT '{"send_delegate_tx":{"tx_id":2,"conn_id":"connection-0","acc_id":"1","validator":"'$COUNTER_VAL_ADDRESS'","amount":{"denom":"uluna", "amount":"1000000"}}}' --from validator --gas auto --gas-adjustment 1.3 -y --output json  --home $HOME/.kujirad --keyring-backend test --chain-id kujira
+kujirad tx wasm execute $CONTRACT '{"send_delegate_tx":{"callback":"2","conn_id":"connection-0","acc_id":"1","validator":"'$COUNTER_VAL_ADDRESS'","amount":{"denom":"uluna", "amount":"1000000"}}}' --from validator --gas auto --gas-adjustment 1.3 -y --output json  --home $HOME/.kujirad --keyring-backend test --chain-id kujira
 
 ```
 
 - Check ICA execution callback
 
 ```sh
-kujirad query wasm contract-state smart $CONTRACT '{"ica_callback":{"tx_id":2}}'
+kujirad query wasm contract-state smart $CONTRACT '{"ica_tx_callback":{"callback":"2"}}'
 
 # Output
 data:
   account_id: "1"
+  callback: Mg==
   connection_id: connection-0
   result:
     success:
       data: Ei0KKy9jb3Ntb3Muc3Rha2luZy52MWJldGExLk1zZ0RlbGVnYXRlUmVzcG9uc2U=
-  tx_id: 2
+  sequence: 1
 ```
 
 - Check Delegation from ICA on host chain
@@ -215,20 +226,31 @@ $COUNTER_BINARY query staking delegation $ICA_ADDRESS $COUNTER_VAL_ADDRESS --out
 - Send ICA tx with invalid operator address
 
 ```sh
-kujirad tx wasm execute $CONTRACT '{"send_delegate_tx":{"tx_id":4,"conn_id":"connection-0","acc_id":"1","validator":"INVALID_OPERATOR","amount":{"denom":"uluna", "amount":"1000000"}}}' --from validator --gas auto --gas-adjustment 1.3 -y --output json  --home $HOME/.kujirad --keyring-backend test --chain-id kujira
+kujirad tx wasm execute $CONTRACT '{"send_delegate_tx":{"callback":"4","conn_id":"connection-0","acc_id":"1","validator":"INVALID_OPERATOR","amount":{"denom":"uluna", "amount":"1000000"}}}' --from validator --gas auto --gas-adjustment 1.3 -y --output json  --home $HOME/.kujirad --keyring-backend test --chain-id kujira
 ```
 
 - Check ica callback
 
 ```sh
-kujirad query wasm contract-state smart $CONTRACT '{"ica_callback":{"tx_id":4}}'
+kujirad query wasm contract-state smart $CONTRACT '{"ica_tx_callback":{"callback":"4"}}'
 
 # Output
 data:
   account_id: "1"
+  callback: NA==
   connection_id: connection-0
   result:
     error:
       error: 'ABCI code: 7: error handling packet: see events for details'
-  tx_id: 4
+  sequence: 1
+```
+
+To get all the callback keys for ica txs
+
+```sh
+kujirad query wasm contract-state smart $CONTRACT '{"ica_tx_callback_keys":{}}'
+
+# Output
+data:
+- "4"
 ```

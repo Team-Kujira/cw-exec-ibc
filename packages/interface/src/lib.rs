@@ -27,6 +27,8 @@ pub enum ExecuteMsg {
 #[cw_serde]
 pub enum QueryMsg {
     Account { conn_id: String, acc_id: String },
+    IcaRegisterCallbackKeys {},
     IcaRegisterCallback { callback: String },
+    IcaTxCallbackKeys {},
     IcaTxCallback { callback: String },
 }
