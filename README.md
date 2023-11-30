@@ -144,7 +144,7 @@ data:
 - "1"
 ```
 
-#### ICA account query
+#### ICA query
 
 After the successful ICA account creation, following query is available to get the ICA account address.
 
@@ -156,7 +156,7 @@ data:
   address: terra14w042juyrktjjqtxpqe3wruc3qjxyvw8purrdt8utfr28p4j5edq20td26
 ```
 
-#### ICA account transaction
+#### ICA transaction
 
 On ICA test contract, it broadcasts `MsgDelegate` message on host chain.
 
@@ -221,7 +221,7 @@ $COUNTER_BINARY query staking delegation $ICA_ADDRESS $COUNTER_VAL_ADDRESS --out
 {"delegation":{"delegator_address":"...","validator_address":"...","shares":"1000000.000000000000000000"},"balance":{"denom":"uluna","amount":"1000000"}}
 ```
 
-##### ICA account failure transaction example
+##### ICA failure transaction example
 
 - Send ICA tx with invalid operator address
 
@@ -253,4 +253,29 @@ kujirad query wasm contract-state smart $CONTRACT '{"ica_tx_callback_keys":{}}'
 # Output
 data:
 - "4"
+```
+
+##### ICA transaction response parsing
+
+- Send ICA undelegation tx
+
+```sh
+kujirad tx wasm execute $CONTRACT '{"send_undelegate_tx":{"callback":"5","conn_id":"connection-0","acc_id":"1","validator":"'$COUNTER_VAL_ADDRESS'","amount":{"denom":"uluna", "amount":"100000"}}}' --from validator --gas auto --gas-adjustment 1.3 -y --output json  --home $HOME/.kujirad --keyring-backend test --chain-id kujira
+```
+
+- Query callback
+
+```sh
+kujirad query wasm contract-state smart $CONTRACT '{"ica_tx_callback":{"callback":"5"}}'
+```
+
+- Query parsed `undelegate_completion` timestamp
+
+```sh
+kujirad query wasm contract-state smart $CONTRACT '{"ica_undelegate_completion":{"callback":"5"}}'
+
+# Output
+# 0 : if response parsing fails
+# -1 : response not received yet - the tx is initiated
+# 1+: valid timestamp
 ```

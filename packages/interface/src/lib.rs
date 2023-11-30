@@ -22,6 +22,13 @@ pub enum ExecuteMsg {
         amount: Coin,
         callback: String,
     },
+    SendUndelegateTx {
+        conn_id: String,
+        acc_id: String,
+        validator: String,
+        amount: Coin,
+        callback: String,
+    },
 }
 
 #[cw_serde]
@@ -31,4 +38,5 @@ pub enum QueryMsg {
     IcaRegisterCallback { callback: String },
     IcaTxCallbackKeys {},
     IcaTxCallback { callback: String },
+    IcaUndelegateCompletion { callback: String },
 }

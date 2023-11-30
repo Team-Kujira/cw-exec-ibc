@@ -29,7 +29,7 @@ cw-utils = { workspace = true, version = "1.0" }
 cw2 = { workspace = true, version = "1.0" }
 schemars = { workspace = true, version = "0.8" }
 serde = { workspace = true, default-features = false, features = ["derive"], version="1" }
-cosmos-sdk-proto = { version = "0.17.0", default-features = false }
+cosmos-sdk-proto = { version = "0.20.0", default-features = false }
 thiserror = "1"
 interface = {workspace = true}
 
