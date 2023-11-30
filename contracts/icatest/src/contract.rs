@@ -248,7 +248,11 @@ fn sudo_ica_register_callback(
 }
 
 // before sdk v0.46
-fn parse_old_callback_data(storage: &mut dyn Storage, callback: String, resp_arr: Vec<MsgData>) {
+fn parse_old_callback_data(
+    storage: &mut dyn Storage,
+    callback: String,
+    resp_arr: Vec<MsgData>,
+) -> bool {
     let mut timestamp: i64 = 0;
     for data in resp_arr {
         let decoded_result = MsgUndelegateResponse::decode(&data.data[..]);
@@ -259,10 +263,11 @@ fn parse_old_callback_data(storage: &mut dyn Storage, callback: String, resp_arr
         }
     }
     let _ = ICA_UNDELEGATE_COMPLETION.save(storage, callback.to_owned(), &timestamp);
+    return timestamp != 0;
 }
 
 // after sdk v0.46
-fn parse_callback_data(storage: &mut dyn Storage, callback: String, resp_arr: Vec<Any>) {
+fn parse_callback_data(storage: &mut dyn Storage, callback: String, resp_arr: Vec<Any>) -> bool {
     let mut timestamp: i64 = 0;
     for data in resp_arr {
         let decoded_result = MsgUndelegateResponse::decode(&data.value[..]);
@@ -273,6 +278,7 @@ fn parse_callback_data(storage: &mut dyn Storage, callback: String, resp_arr: Ve
         }
     }
     let _ = ICA_UNDELEGATE_COMPLETION.save(storage, callback.to_owned(), &timestamp);
+    return timestamp != 0;
 }
 
 fn sudo_ica_tx_callback(deps: DepsMut, _env: Env, data: IcaTxCallbackData) -> StdResult<Response> {
@@ -286,13 +292,19 @@ fn sudo_ica_tx_callback(deps: DepsMut, _env: Env, data: IcaTxCallbackData) -> St
                 let tx_msg_data_result = TxMsgData::decode(&data[..]);
                 if let Ok(tx_msg_data) = tx_msg_data_result {
                     // try parsing old format
-                    parse_old_callback_data(deps.storage, callbackkey.to_owned(), tx_msg_data.data);
-                    // try parsing latest format
-                    parse_callback_data(
+                    let success = parse_old_callback_data(
                         deps.storage,
                         callbackkey.to_owned(),
-                        tx_msg_data.msg_responses,
+                        tx_msg_data.data,
                     );
+                    if !success {
+                        // try parsing latest format
+                        parse_callback_data(
+                            deps.storage,
+                            callbackkey.to_owned(),
+                            tx_msg_data.msg_responses,
+                        );
+                    }
                 }
             }
             _ => {}
