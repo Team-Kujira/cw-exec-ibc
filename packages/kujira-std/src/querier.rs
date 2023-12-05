@@ -6,7 +6,7 @@ use crate::{
     denom::Denom,
     price::HumanPrice,
     query::{
-        AccountAddressResponse, BankQuery, CwICAQuery, ExchangeRateResponse, KujiraQuery,
+        AccountAddressResponse, BankQuery, ExchangeRateResponse, IcaQuery, KujiraQuery,
         OracleQuery, SupplyResponse,
     },
 };
@@ -46,7 +46,7 @@ impl<'a> KujiraQuerier<'a> {
         connection_id: String,
         account_id: String,
     ) -> StdResult<AccountAddressResponse> {
-        let query = KujiraQuery::CwIca(CwICAQuery::AccountAddress {
+        let query = KujiraQuery::Ica(IcaQuery::AccountAddress {
             owner,
             connection_id,
             account_id,

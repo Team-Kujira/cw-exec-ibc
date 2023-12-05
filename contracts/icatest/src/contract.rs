@@ -2,20 +2,17 @@ use cosmos_sdk_proto::cosmos::base::abci::v1beta1::{MsgData, TxMsgData};
 use cosmos_sdk_proto::traits::Message;
 use cosmos_sdk_proto::Any;
 use cosmos_sdk_proto::{
-    cosmos::staking::v1beta1::{
-        MsgDelegate, MsgDelegateResponse, MsgUndelegate, MsgUndelegateResponse,
-    },
+    cosmos::staking::v1beta1::{MsgDelegate, MsgUndelegate, MsgUndelegateResponse},
     traits::MessageExt,
 };
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult,
-    Storage,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdResult, Storage,
 };
 use cw2::set_contract_version;
 use kujira::{
-    CwICAMsg, IcaRegisterCallbackData, IcaTxCallbackData, KujiraMsg, KujiraQuerier, KujiraQuery,
+    IcaMsg, IcaRegisterCallbackData, IcaTxCallbackData, KujiraMsg, KujiraQuerier, KujiraQuery,
     ProtobufAny, SudoMsg,
 };
 use std::str;
@@ -60,7 +57,7 @@ pub fn execute(
             version,
             callback,
         } => Ok(
-            Response::default().add_message(KujiraMsg::CwIca(CwICAMsg::Register {
+            Response::default().add_message(KujiraMsg::Ica(IcaMsg::Register {
                 connection_id: conn_id,
                 account_id: acc_id,
                 version: version,
@@ -90,7 +87,7 @@ pub fn execute(
             let bytes = msg.to_bytes().unwrap();
             let any = ProtobufAny::new("/cosmos.staking.v1beta1.MsgDelegate", bytes);
             Ok(Response::default()
-                .add_message(KujiraMsg::CwIca(CwICAMsg::Submit {
+                .add_message(KujiraMsg::Ica(IcaMsg::Submit {
                     connection_id: conn_id,
                     account_id: acc_id,
                     msgs: vec![any],
@@ -126,7 +123,7 @@ pub fn execute(
             let bytes = msg.to_bytes().unwrap();
             let any = ProtobufAny::new("/cosmos.staking.v1beta1.MsgUndelegate", bytes);
             Ok(Response::default()
-                .add_message(KujiraMsg::CwIca(CwICAMsg::Submit {
+                .add_message(KujiraMsg::Ica(IcaMsg::Submit {
                     connection_id: conn_id,
                     account_id: acc_id,
                     msgs: vec![any],

@@ -8,7 +8,7 @@ use crate::denom::Denom;
 pub enum KujiraQuery {
     Bank(BankQuery),
     Oracle(OracleQuery),
-    CwIca(CwICAQuery),
+    Ica(IcaQuery),
 }
 
 impl CustomQuery for KujiraQuery {}
@@ -29,7 +29,7 @@ pub enum OracleQuery {
 
 /// This contains all queries that can be made to the cw-ica module
 #[cw_serde]
-pub enum CwICAQuery {
+pub enum IcaQuery {
     // AccountAddress will return the address of the interchain account.
     AccountAddress {
         owner: Addr,

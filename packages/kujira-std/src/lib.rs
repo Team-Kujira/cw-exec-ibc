@@ -16,7 +16,7 @@ pub use {
     callback::{CallbackData, CallbackMsg},
     denom::Denom,
     merkle::{Error as MerkleError, Merkle, Proof},
-    msg::{AuthMsg, CwICAMsg, DenomMsg, KujiraMsg, ProtobufAny},
+    msg::{AuthMsg, DenomMsg, IcaMsg, KujiraMsg, ProtobufAny},
     precision::{Precise, Precision},
     price::{HumanPrice, NormalizedPrice},
     querier::KujiraQuerier,
