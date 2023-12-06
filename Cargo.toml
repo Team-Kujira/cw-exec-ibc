@@ -1,6 +1,5 @@
 [workspace]
-members = ["contracts/*", "packages/*", "scripts"]
-exclude = ["scripts"]
+members = ["contracts/*", "packages/*"]
 
 [profile.release]
 opt-level = 3
