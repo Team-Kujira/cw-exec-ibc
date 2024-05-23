@@ -5,6 +5,7 @@ use cosmwasm_std::Binary;
 pub enum SudoMsg {
     IcaRegisterCallback(IcaRegisterCallbackData),
     IcaTxCallback(IcaTxCallbackData),
+    TransferCallback(TransferCallbackData),
 }
 
 #[cw_serde]
@@ -29,4 +30,16 @@ pub enum IcaResult {
     Success { data: Binary },
     Error { error: String },
     Timeout {},
+}
+
+#[cw_serde]
+pub struct TransferCallbackData {
+    pub port: String,
+    pub channel: String,
+    pub sequence: u64,
+    pub receiver: String,
+    pub denom: String,
+    pub amount: String,
+    pub memo: String,
+    pub result: IcaResult,
 }

@@ -1,5 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Coin;
+use cosmwasm_std::{Coin, IbcTimeout};
 
 #[cw_serde]
 pub struct InstantiateMsg {}
@@ -29,6 +29,12 @@ pub enum ExecuteMsg {
         amount: Coin,
         callback: String,
     },
+    IbcTransfer {
+        channel_id: String,
+        to_address: String,
+        amount: Coin,
+        timeout: IbcTimeout,
+    },
 }
 
 #[cw_serde]
@@ -39,4 +45,6 @@ pub enum QueryMsg {
     IcaTxCallbackKeys {},
     IcaTxCallback { callback: String },
     IcaUndelegateCompletion { callback: String },
+    TransferCallback { sequence: u64 },
+    TransferCallbackKeys {},
 }

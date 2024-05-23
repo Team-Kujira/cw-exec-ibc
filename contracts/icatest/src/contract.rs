@@ -8,19 +8,19 @@ use cosmos_sdk_proto::{
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdResult, Storage,
+    to_binary, Binary, Deps, DepsMut, Env, IbcMsg, MessageInfo, Order, Response, StdResult, Storage,
 };
 use cw2::set_contract_version;
 use kujira::{
     IcaMsg, IcaRegisterCallbackData, IcaTxCallbackData, KujiraMsg, KujiraQuerier, KujiraQuery,
-    ProtobufAny, SudoMsg,
+    ProtobufAny, SudoMsg, TransferCallbackData,
 };
 use std::str;
 
 use crate::state::ICA_UNDELEGATE_COMPLETION;
 use crate::{
     error::ContractError,
-    state::{ICA_REGISTER_CALLBACKS, ICA_TX_CALLBACKS},
+    state::{ICA_REGISTER_CALLBACKS, ICA_TX_CALLBACKS, TRANSFER_CALLBACKS},
 };
 use interface::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
@@ -133,6 +133,21 @@ pub fn execute(
                 }))
                 .add_attribute("Interchain Account Address", address.address))
         }
+        ExecuteMsg::IbcTransfer {
+            channel_id,
+            to_address,
+            amount,
+            timeout,
+        } => {
+            let msg = IbcMsg::Transfer {
+                channel_id: channel_id,
+                to_address: to_address,
+                amount: amount,
+                timeout: timeout,
+            };
+
+            Ok(Response::default().add_message(msg))
+        }
     }
 }
 
@@ -149,6 +164,8 @@ pub fn query(deps: Deps<KujiraQuery>, env: Env, msg: QueryMsg) -> Result<Binary,
         QueryMsg::IcaUndelegateCompletion { callback } => {
             query_ica_undelegation_completion(deps, env, callback)
         }
+        QueryMsg::TransferCallback { sequence } => query_transfer_callback(deps, env, sequence),
+        QueryMsg::TransferCallbackKeys {} => query_transfer_callback_keys(deps, env),
     }
 }
 
@@ -164,6 +181,31 @@ fn query_account(
         Ok(account) => Ok(to_binary(&account)?),
         Err(e) => Err(e.into()),
     }
+}
+
+fn query_transfer_callback(
+    deps: Deps<KujiraQuery>,
+    _env: Env,
+    sequence: u64,
+) -> Result<Binary, ContractError> {
+    let data = TRANSFER_CALLBACKS.load(deps.storage, sequence)?;
+    return Ok(to_binary(&data)?);
+}
+
+fn query_transfer_callback_keys(
+    deps: Deps<KujiraQuery>,
+    _env: Env,
+) -> Result<Binary, ContractError> {
+    let keys = TRANSFER_CALLBACKS
+        .range(deps.storage, None, None, Order::Ascending)
+        .map(|item| {
+            if let Ok((key, _)) = item {
+                return key;
+            }
+            return 0u64;
+        })
+        .collect::<Vec<u64>>();
+    return Ok(to_binary(&keys)?);
 }
 
 fn query_ica_register_callback_keys(
@@ -227,6 +269,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
     match msg {
         SudoMsg::IcaRegisterCallback(data) => sudo_ica_register_callback(deps, env, data),
         SudoMsg::IcaTxCallback(data) => sudo_ica_tx_callback(deps, env, data),
+        SudoMsg::TransferCallback(data) => sudo_transfer_callback(deps, env, data),
     }
 }
 
@@ -307,6 +350,17 @@ fn sudo_ica_tx_callback(deps: DepsMut, _env: Env, data: IcaTxCallbackData) -> St
             _ => {}
         }
     }
+
+    return Ok(Response::default());
+}
+
+fn sudo_transfer_callback(
+    deps: DepsMut,
+    _env: Env,
+    data: TransferCallbackData,
+) -> StdResult<Response> {
+    // Update the storage record associated with the transfer callback.
+    TRANSFER_CALLBACKS.save(deps.storage, data.sequence, &data)?;
 
     return Ok(Response::default());
 }
