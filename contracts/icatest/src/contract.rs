@@ -13,11 +13,11 @@ use cosmwasm_std::{
 use cw2::set_contract_version;
 use kujira::{
     IcaMsg, IcaRegisterCallbackData, IcaTxCallbackData, KujiraMsg, KujiraQuerier, KujiraQuery,
-    ProtobufAny, SudoMsg, TransferCallbackData,
+    ProtobufAny, SudoMsg, TransferCallbackData, TransferReceiptData,
 };
 use std::str;
 
-use crate::state::ICA_UNDELEGATE_COMPLETION;
+use crate::state::{ICA_UNDELEGATE_COMPLETION, TRANSFER_RECEIPTS};
 use crate::{
     error::ContractError,
     state::{ICA_REGISTER_CALLBACKS, ICA_TX_CALLBACKS, TRANSFER_CALLBACKS},
@@ -166,6 +166,8 @@ pub fn query(deps: Deps<KujiraQuery>, env: Env, msg: QueryMsg) -> Result<Binary,
         }
         QueryMsg::TransferCallback { sequence } => query_transfer_callback(deps, env, sequence),
         QueryMsg::TransferCallbackKeys {} => query_transfer_callback_keys(deps, env),
+        QueryMsg::TransferReceipt { sequence } => query_transfer_receipt(deps, env, sequence),
+        QueryMsg::TransferReceiptKeys {} => query_transfer_receipt_keys(deps, env),
     }
 }
 
@@ -197,6 +199,31 @@ fn query_transfer_callback_keys(
     _env: Env,
 ) -> Result<Binary, ContractError> {
     let keys = TRANSFER_CALLBACKS
+        .range(deps.storage, None, None, Order::Ascending)
+        .map(|item| {
+            if let Ok((key, _)) = item {
+                return key;
+            }
+            return 0u64;
+        })
+        .collect::<Vec<u64>>();
+    return Ok(to_binary(&keys)?);
+}
+
+fn query_transfer_receipt(
+    deps: Deps<KujiraQuery>,
+    _env: Env,
+    sequence: u64,
+) -> Result<Binary, ContractError> {
+    let data = TRANSFER_RECEIPTS.load(deps.storage, sequence)?;
+    return Ok(to_binary(&data)?);
+}
+
+fn query_transfer_receipt_keys(
+    deps: Deps<KujiraQuery>,
+    _env: Env,
+) -> Result<Binary, ContractError> {
+    let keys = TRANSFER_RECEIPTS
         .range(deps.storage, None, None, Order::Ascending)
         .map(|item| {
             if let Ok((key, _)) = item {
@@ -270,6 +297,7 @@ pub fn sudo(deps: DepsMut, env: Env, msg: SudoMsg) -> StdResult<Response> {
         SudoMsg::IcaRegisterCallback(data) => sudo_ica_register_callback(deps, env, data),
         SudoMsg::IcaTxCallback(data) => sudo_ica_tx_callback(deps, env, data),
         SudoMsg::TransferCallback(data) => sudo_transfer_callback(deps, env, data),
+        SudoMsg::TransferReceipt(data) => sudo_transfer_receipt(deps, env, data),
     }
 }
 
@@ -361,6 +389,17 @@ fn sudo_transfer_callback(
 ) -> StdResult<Response> {
     // Update the storage record associated with the transfer callback.
     TRANSFER_CALLBACKS.save(deps.storage, data.sequence, &data)?;
+
+    return Ok(Response::default());
+}
+
+fn sudo_transfer_receipt(
+    deps: DepsMut,
+    _env: Env,
+    data: TransferReceiptData,
+) -> StdResult<Response> {
+    // Update the storage record associated with the transfer callback.
+    TRANSFER_RECEIPTS.save(deps.storage, data.sequence, &data)?;
 
     return Ok(Response::default());
 }

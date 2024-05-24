@@ -6,6 +6,7 @@ pub enum SudoMsg {
     IcaRegisterCallback(IcaRegisterCallbackData),
     IcaTxCallback(IcaTxCallbackData),
     TransferCallback(TransferCallbackData),
+    TransferReceipt(TransferReceiptData),
 }
 
 #[cw_serde]
@@ -42,4 +43,15 @@ pub struct TransferCallbackData {
     pub amount: String,
     pub memo: String,
     pub result: IcaResult,
+}
+
+#[cw_serde]
+pub struct TransferReceiptData {
+    pub port: String,
+    pub channel: String,
+    pub sequence: u64,
+    pub sender: String,
+    pub denom: String,
+    pub amount: String,
+    pub memo: String,
 }

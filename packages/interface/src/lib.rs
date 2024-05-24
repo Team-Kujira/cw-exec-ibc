@@ -47,4 +47,6 @@ pub enum QueryMsg {
     IcaUndelegateCompletion { callback: String },
     TransferCallback { sequence: u64 },
     TransferCallbackKeys {},
+    TransferReceipt { sequence: u64 },
+    TransferReceiptKeys {},
 }

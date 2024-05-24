@@ -22,6 +22,9 @@ pub use {
     querier::KujiraQuerier,
     query::{BankQuery, ExchangeRateResponse, KujiraQuery, OracleQuery, SupplyResponse},
     schedule::{Release, Schedule},
-    sudo::{IcaRegisterCallbackData, IcaResult, IcaTxCallbackData, SudoMsg, TransferCallbackData},
+    sudo::{
+        IcaRegisterCallbackData, IcaResult, IcaTxCallbackData, SudoMsg, TransferCallbackData,
+        TransferReceiptData,
+    },
     utils::{amount, fee_address},
 };
