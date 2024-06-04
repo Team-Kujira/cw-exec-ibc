@@ -43,6 +43,7 @@ pub struct TransferCallbackData {
     pub amount: String,
     pub memo: String,
     pub result: IcaResult,
+    pub callback: Binary,
 }
 
 #[cw_serde]

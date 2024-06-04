@@ -133,6 +133,23 @@ pub fn execute(
                 }))
                 .add_attribute("Interchain Account Address", address.address))
         }
+        ExecuteMsg::CustomIbcTransfer {
+            channel_id,
+            to_address,
+            amount,
+            timeout,
+            callback,
+        } => {
+            let msg = IcaMsg::Transfer {
+                channel_id: channel_id,
+                to_address: to_address,
+                amount: amount,
+                timeout: timeout,
+                callback: Binary::from(callback.as_bytes()),
+            };
+
+            Ok(Response::default().add_message(KujiraMsg::Ica(msg)))
+        }
         ExecuteMsg::IbcTransfer {
             channel_id,
             to_address,

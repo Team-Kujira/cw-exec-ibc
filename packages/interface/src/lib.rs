@@ -29,6 +29,13 @@ pub enum ExecuteMsg {
         amount: Coin,
         callback: String,
     },
+    CustomIbcTransfer {
+        channel_id: String,
+        to_address: String,
+        amount: Coin,
+        timeout: IbcTimeout,
+        callback: String,
+    },
     IbcTransfer {
         channel_id: String,
         to_address: String,

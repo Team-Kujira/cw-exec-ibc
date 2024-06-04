@@ -1,7 +1,7 @@
 //!    Bindings for message execution on Kujira Core
 
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, CustomMsg, Timestamp, Uint128};
+use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, CustomMsg, IbcTimeout, Timestamp, Uint128};
 
 use crate::denom::Denom;
 
@@ -98,6 +98,13 @@ pub enum IcaMsg {
         msgs: Vec<ProtobufAny>,
         memo: String,
         timeout: u64,
+        callback: Binary,
+    },
+    Transfer {
+        channel_id: String,
+        to_address: String,
+        amount: Coin,
+        timeout: IbcTimeout,
         callback: Binary,
     },
 }
